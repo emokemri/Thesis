@@ -2,6 +2,7 @@ import customtkinter as ctk
 import tkinter as tk
 import numpy as np
 
+
 matrix = []
 matrix_entries = []
 vector_length_entries = []
@@ -10,6 +11,7 @@ vector_entries = []
 vectors = []
 matrix_np = []
 
+# Generate matrix entries
 def generate_matrix(master_name):
     global matrix_entries
 
@@ -31,6 +33,7 @@ def generate_matrix(master_name):
             row_entries.append(ent)
         matrix_entries.append(row_entries)
 
+# Save matrix entries to a 2D array
 def save_matrix(master_name):
     global matrix
     children = master_name.winfo_children()
@@ -46,6 +49,7 @@ def save_matrix(master_name):
 
     matrix = array_2d
 
+# Generate vector length entries and labels
 def generate_vector_lengths(master_name):
     global vector_length_entries
     global vector_length_labels
@@ -75,6 +79,7 @@ def generate_vector_lengths(master_name):
         vector_length_entries.append(ent)
         vector_length_labels.append(lbl_vector_length)
 
+# Create vector entries
 def generate_vectors(master_name):
     global vector_entries
 
@@ -94,12 +99,12 @@ def generate_vectors(master_name):
                 ent.grid(row=int(i/2), column=2+j, padx=2, pady=2)
                 vector_entries.append(ent)
 
+# Save vectors to a list
 def save_vectors(master_name):
     global vectors
 
     vectors.clear()
-    # Initialize an empty 2D array with the specified number of rows and columns
-    # Fill the 2D array with the elements from the 1D array
+
     rows = int(ent_number_of_vectors.get())
 
     vector_lengths = []
@@ -121,9 +126,9 @@ def save_vectors(master_name):
         else:
             i += 1
     
-
+# Load matrix and vectors from a file
 def load_from_file():
-    """Open a file for loading."""
+    # Open a file for loading
     global matrix
     global vectors
     filepath = tk.filedialog.askopenfilename(
@@ -131,17 +136,16 @@ def load_from_file():
     )
     if not filepath:
         return
-    #txt_edit.delete("1.0", tk.END)
-    #erasing contents
+
+    # Erasing contents
     matrix.clear()
     matrix = []
     vectors.clear()
     vectors = []
 
+    # Loading the file contents
     with open(filepath, mode="r", encoding="utf-8") as input_file:
         text = input_file.read().split('*')
-        #txt_edit.insert(tk.END, text)
-        #loading stuff
 
         # Split the matrix_text[0] into lines
         matrix_lines = text[0].split('\n')
@@ -158,6 +162,7 @@ def load_from_file():
         print(matrix)
         print(vectors)
     
+# Calculate determinant and check if it matches the specified value
 def calculate():
     global matrix_np
     global matrix
@@ -165,87 +170,81 @@ def calculate():
     matrix_np = np.array(matrix)
     print(np.linalg.det(matrix_np))
     if np.linalg.det(matrix_np) == int(ent_number_of_vectors.get()):
-        print("Yes")
+        print("Radix")
     else:
-        print("No")
+        print("Not radix")
 
 
 
-app = ctk.CTk(fg_color="#ADD8E6")
-app.title("Szakdolgozat")
+if __name__ == "__main__":
+    app = ctk.CTk(fg_color="#ADD8E6")
+    app.title("Szakdolgozat")
+    frm_form = ctk.CTkFrame(master=app, fg_color="#ADD8E6")
 
-frm_form = ctk.CTkFrame(master=app, fg_color="#ADD8E6")
+    lbl_rows = ctk.CTkLabel(master=frm_form, text="rows:")
+    ent_rows = ctk.CTkEntry(master=frm_form, width=50)
 
-lbl_rows = ctk.CTkLabel(master=frm_form, text="rows:")
-# Create an Entry widget
-ent_rows = ctk.CTkEntry(master=frm_form, width=50)
+    lbl_columns = ctk.CTkLabel(master=frm_form, text="columns:")
+    ent_columns = ctk.CTkEntry(master=frm_form, width=50)
 
-lbl_columns = ctk.CTkLabel(master=frm_form, text="columns:")
-ent_columns = ctk.CTkEntry(master=frm_form, width=50)
+    btn_generate = ctk.CTkButton(master=frm_form, text="Generate", command=lambda: generate_matrix(frm_matrix))
 
-btn_generate = ctk.CTkButton(master=frm_form, text="Generate", command=lambda: generate_matrix(frm_matrix))
+    for i in range(4):
+        app.columnconfigure(i, weight=1)
 
-for i in range(4):
-    app.columnconfigure(i, weight=1)
-    #app.rowconfigure(i, weight=1, minsize=50)
+    # Use the grid geometry manager to place the Label and Entry widgets
+    frm_form.pack()
+    lbl_rows.grid(row=0, column=0, padx=5, pady=5)
+    ent_rows.grid(row=0, column=1, padx=5, pady=5)
+    lbl_columns.grid(row=0, column=2, padx=5, pady=5)
+    ent_columns.grid(row=0, column=3, padx=5, pady=5)
+    btn_generate.grid(row=0, column=4, padx=5, pady=5)
 
-# Use the grid geometry manager to place the Label and
-# Entry widgets in the row whose index is idx
-frm_form.pack()
-lbl_rows.grid(row=0, column=0, padx=5, pady=5)
-ent_rows.grid(row=0, column=1, padx=5, pady=5)
-lbl_columns.grid(row=0, column=2, padx=5, pady=5)
-ent_columns.grid(row=0, column=3, padx=5, pady=5)
-btn_generate.grid(row=0, column=4, padx=5, pady=5)
+    lbl_spacemaker = ctk.CTkFrame(master=app, height=20, fg_color="#ADD8E6")
 
-lbl_spacemaker = ctk.CTkFrame(master=app, height=20, fg_color="#ADD8E6")
-#lbl_spacemaker.pack()
+    frm_matrix = ctk.CTkFrame(master=app, fg_color="#ADD8E6", height=20)
+    frm_matrix.pack()
 
-frm_matrix = ctk.CTkFrame(master=app, fg_color="#ADD8E6", height=20)
-#ent_matrix = ctk.CTkEntry(master=frm_matrix, width=30, justify="center")
-frm_matrix.pack()
-#ent_matrix.grid(row=0, column=0, padx=5, pady=5)
+    frm_save_matrix = ctk.CTkFrame(master=app, fg_color="#ADD8E6")
+    btn_save_matrix = ctk.CTkButton(master=frm_save_matrix, text="Save matrix", command=lambda: save_matrix(frm_matrix))
+    frm_save_matrix.pack()
+    btn_save_matrix.grid(row=0, column=0, padx=5, pady=5)
 
-frm_save_matrix = ctk.CTkFrame(master=app, fg_color="#ADD8E6")
-btn_save_matrix = ctk.CTkButton(master=frm_save_matrix, text="Save matrix", command=lambda: save_matrix(frm_matrix))
-frm_save_matrix.pack()
-btn_save_matrix.grid(row=0, column=0, padx=5, pady=5)
+    lbl_spacemaker.pack()
 
-lbl_spacemaker.pack()
+    frm_number_of_vectors = ctk.CTkFrame(master=app, fg_color="#ADD8E6")
+    lbl_number_of_vectors = ctk.CTkLabel(master=frm_number_of_vectors, text="number of vectors:")
+    ent_number_of_vectors = ctk.CTkEntry(master=frm_number_of_vectors, width=50)
+    lbl_number_of_vectors.grid(row=0, column=0, padx=5, pady=5)
+    ent_number_of_vectors.grid(row=0, column=1, padx=5, pady=5)
 
-frm_number_of_vectors = ctk.CTkFrame(master=app, fg_color="#ADD8E6")
-lbl_number_of_vectors = ctk.CTkLabel(master=frm_number_of_vectors, text="number of vectors:")
-ent_number_of_vectors = ctk.CTkEntry(master=frm_number_of_vectors, width=50)
-lbl_number_of_vectors.grid(row=0, column=0, padx=5, pady=5)
-ent_number_of_vectors.grid(row=0, column=1, padx=5, pady=5)
+    frm_vectors = ctk.CTkFrame(master=app, fg_color="#ADD8E6", height=20)
+    btn_generate_vector_lengths = ctk.CTkButton(master=frm_number_of_vectors, text="Generate", command=lambda: generate_vector_lengths(frm_vectors))
+    btn_generate_vector_lengths.grid(row=0, column=2, padx=5, pady=5)
+    frm_number_of_vectors.pack()
+    frm_vectors.pack()
 
-frm_vectors = ctk.CTkFrame(master=app, fg_color="#ADD8E6", height=20)
-btn_generate_vector_lengths = ctk.CTkButton(master=frm_number_of_vectors, text="Generate", command=lambda: generate_vector_lengths(frm_vectors))
-btn_generate_vector_lengths.grid(row=0, column=2, padx=5, pady=5)
-frm_number_of_vectors.pack()
-frm_vectors.pack()
+    frm_generate_vectors = ctk.CTkFrame(master=app, fg_color="#ADD8E6", height=20)
+    btn_generate_vectors = ctk.CTkButton(master=frm_generate_vectors, text="Create vectors", command=lambda: generate_vectors(frm_vectors))
+    btn_generate_vectors.grid(row=0, column=0, padx=5, pady=5)
+    btn_save_vectors = ctk.CTkButton(master=frm_generate_vectors, text="Save vectors", command=lambda: save_vectors(frm_vectors))
+    btn_save_vectors.grid(row=0, column=1, padx=5, pady=5)
+    frm_generate_vectors.pack()
 
-frm_generate_vectors = ctk.CTkFrame(master=app, fg_color="#ADD8E6", height=20)
-btn_generate_vectors = ctk.CTkButton(master=frm_generate_vectors, text="Create vectors", command=lambda: generate_vectors(frm_vectors))
-btn_generate_vectors.grid(row=0, column=0, padx=5, pady=5)
-btn_save_vectors = ctk.CTkButton(master=frm_generate_vectors, text="Save vectors", command=lambda: save_vectors(frm_vectors))
-btn_save_vectors.grid(row=0, column=1, padx=5, pady=5)
-frm_generate_vectors.pack()
+    lbl_spacemaker = ctk.CTkFrame(master=app, height=20, fg_color="#ADD8E6")
+    lbl_spacemaker.pack()
 
-lbl_spacemaker = ctk.CTkFrame(master=app, height=20, fg_color="#ADD8E6")
-lbl_spacemaker.pack()
+    frm_load_from_file = ctk.CTkFrame(master=app, fg_color="#ADD8E6")
+    btn_load_from_file = ctk.CTkButton(master=frm_load_from_file, text="Load from file", command=load_from_file)
+    btn_load_from_file.grid(row=0, column=0, padx=5, pady=5)
+    frm_load_from_file.pack()
 
-frm_load_from_file = ctk.CTkFrame(master=app, fg_color="#ADD8E6")
-btn_load_from_file = ctk.CTkButton(master=frm_load_from_file, text="Load from file", command=load_from_file)
-btn_load_from_file.grid(row=0, column=0, padx=5, pady=5)
-frm_load_from_file.pack()
+    lbl_spacemaker = ctk.CTkFrame(master=app, height=20, fg_color="#ADD8E6")
+    lbl_spacemaker.pack()
 
-lbl_spacemaker = ctk.CTkFrame(master=app, height=20, fg_color="#ADD8E6")
-lbl_spacemaker.pack()
+    frm_calculate = ctk.CTkFrame(master=app, fg_color="#ADD8E6")
+    btn_calculate = ctk.CTkButton(master=frm_calculate, text="Calculate", command=calculate)
+    btn_calculate.grid(row=0, column=0, padx=5, pady=5)
+    frm_calculate.pack()
 
-frm_calculate = ctk.CTkFrame(master=app, fg_color="#ADD8E6")
-btn_calculate = ctk.CTkButton(master=frm_calculate, text="Calculate", command=calculate)
-btn_calculate.grid(row=0, column=0, padx=5, pady=5)
-frm_calculate.pack()
-
-app.mainloop()
+    app.mainloop()
