@@ -11,13 +11,13 @@ vectors = np.array([])
 class RadixSystem:
     def __init__(self, matrix=None, vectors=None):
         self.matrix = matrix if matrix is not None else np.array([])
-        self.vectors = vectors if vectors is not None else []
+        self.vectors = vectors if vectors is not None else np.array([])
 
     def set_matrix(self, matrix):
         self.matrix = np.array(matrix)
 
     def set_vectors(self, vectors):
-        self.vectors = vectors
+        self.vectors = np.array(vectors)
 
     def get_matrix(self):
         return self.matrix
