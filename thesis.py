@@ -1,204 +1,212 @@
 import customtkinter as ctk
 import tkinter as tk
 import numpy as np
+import json
+import sys
 
 
-matrix = []
-matrix_entries = []
-vector_length_entries = []
-vector_length_labels = []
-vector_entries = []
-vectors = []
-matrix_np = []
+matrix = np.array([])
+vectors = np.array([])
+
+class RadixSystem:
+    def __init__(self, matrix=None, vectors=None):
+        self.matrix = matrix if matrix is not None else np.array([])
+        self.vectors = vectors if vectors is not None else []
+
+    def set_matrix(self, matrix):
+        self.matrix = np.array(matrix)
+
+    def set_vectors(self, vectors):
+        self.vectors = vectors
+
+    def get_matrix(self):
+        return self.matrix
+
+    def get_vectors(self):
+        return self.vectors
+
+
 
 # Generate matrix entries
 def generate_matrix(master_name):
-    global matrix_entries
+    for widget in master_name.winfo_children():
+        widget.destroy()
 
-    # Clear the existing matrix before creating a new one
-    for row in matrix_entries:
-        for entry in row:
-            entry.destroy()
+    dims = int(ent_dimension.get())
 
-    matrix_entries = []
-
-    rows = int(ent_rows.get())
-    cols = int(ent_columns.get())
-
-    for i in range(rows):
-        row_entries = []
-        for j in range(cols):
+    for i in range(dims):
+        for j in range(dims):
             ent = ctk.CTkEntry(master=master_name, width=30, fg_color="#E0FFFF")
             ent.grid(row=i, column=j, padx=2, pady=2)
-            row_entries.append(ent)
-        matrix_entries.append(row_entries)
 
-# Save matrix entries to a 2D array
+# Save matrix entries
 def save_matrix(master_name):
     global matrix
-    children = master_name.winfo_children()
-    # Initialize an empty 2D array with the specified number of rows and columns
-    array_2d = [[0 for _ in range(int(ent_columns.get()))] for _ in range(int(ent_rows.get()))]
 
-    # Fill the 2D array with the elements from the 1D array
+    children = master_name.winfo_children()
+    dimension = int(ent_dimension.get())
+    
+    # Initialize a NumPy array with zeros
+    array = np.zeros((dimension, dimension), dtype=int)
+    matrix.fill(0)
+
+    # Fill the NumPy array with the elements from the entry widgets
     index = 0
-    for i in range(int(ent_rows.get())):
-        for j in range(int(ent_columns.get())):
-            array_2d[i][j] = int(children[index].get())
+    for i in range(dimension):
+        for j in range(dimension):
+            array[i, j] = int(children[index].get())
             index += 1
 
-    matrix = array_2d
+    matrix = array
+    print(matrix)
 
 # Generate vector length entries and labels
-def generate_vector_lengths(master_name):
-    global vector_length_entries
-    global vector_length_labels
-    global vector_entries
-
-    # Clear the existing vectors before creating a new one
-    for row in vector_entries:
-        row.destroy()
-
-    # Clear the existing matrix before creating a new one
-    for row in vector_length_labels:
-        row.destroy()
-
-    for row in vector_length_entries:
-        row.destroy()
-
-    vector_length_entries = []
-    vector_length_labels = []
+def generate_vectors(master_name):
+    for widget in master_name.winfo_children():
+        widget.destroy()
 
     rows = int(ent_number_of_vectors.get())
+    dimension = int(ent_dimension.get())
 
     for i in range(rows):
-        lbl_vector_length = ctk.CTkLabel(master=master_name, text=f"length of {i+1}. vector:")
+        lbl_vector_length = ctk.CTkLabel(master=master_name, text=f"{i+1}. vector:")
         lbl_vector_length.grid(row=i, column=0, padx=2, pady=2)
-        ent = ctk.CTkEntry(master=master_name, width=30)
-        ent.grid(row=i, column=1, padx=2, pady=2)
-        vector_length_entries.append(ent)
-        vector_length_labels.append(lbl_vector_length)
+        for j in range(dimension):
+            ent = ctk.CTkEntry(master=master_name, width=30, fg_color="#E0FFFF")
+            ent.grid(row=i, column=j+1, padx=2, pady=2)
+ 
 
-# Create vector entries
-def generate_vectors(master_name):
-    global vector_entries
 
-    # Clear the existing vectors before creating a new one
-    for row in vector_entries:
-        row.destroy()
-
-    vector_entries = []
-
-    rows = int(ent_number_of_vectors.get())
-
-    for i in range(rows*2):
-        if i%2 == 1:
-            vector_length = int(master_name.winfo_children()[i].get())
-            for j in range(vector_length):
-                ent = ctk.CTkEntry(master=master_name, width=30, fg_color="#E0FFFF")
-                ent.grid(row=int(i/2), column=2+j, padx=2, pady=2)
-                vector_entries.append(ent)
-
-# Save vectors to a list
+# Save vectors to a NumPy array
 def save_vectors(master_name):
     global vectors
 
-    vectors.clear()
+    dimension = int(ent_dimension.get())
+    number_of_vectors = int(ent_number_of_vectors.get())
 
-    rows = int(ent_number_of_vectors.get())
+    vectors.fill(0)
 
-    vector_lengths = []
-    
-    index = 0
-    
-    i = 0
-    while i < len(master_name.winfo_children()):
-        if i%2 == 1 and i < rows*2:
-            vector_lengths.append(int(master_name.winfo_children()[i].get()))
-            i += 1
-        elif i >= rows*2 and index < len(vector_lengths):
-            curr_vector = []
-            for j in range(vector_lengths[index]):
-                curr_vector.append(int(master_name.winfo_children()[i+j].get()))
-            i += vector_lengths[index]
-            vectors.append(curr_vector)
-            index += 1
-        else:
-            i += 1
-    
+    # Initialize a NumPy array with zeros
+    array = np.zeros((number_of_vectors, dimension), dtype=int)
+
+    # Fill the NumPy array with the elements from the entry widgets
+    row = 0
+    col = 0
+    for child in master_name.winfo_children():
+        if isinstance(child, ctk.CTkEntry):
+            if col >= dimension:
+                col = 0
+                row += 1
+            array[row, col] = int(child.get())
+            col += 1
+
+    vectors = array
+
+
+
 # Load matrix and vectors from a file
 def load_from_file():
-    # Open a file for loading
     global matrix
     global vectors
+
+    # Open a file for loading
     filepath = tk.filedialog.askopenfilename(
-        filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")]
+        filetypes=[("JSON Files", "*.json"), ("All Files", "*.*")]
     )
     if not filepath:
         return
 
     # Erasing contents
-    matrix.clear()
-    matrix = []
-    vectors.clear()
-    vectors = []
+    matrix.fill(0)
+    vectors.fill(0)
 
-    # Loading the file contents
+    # Loading the JSON file contents
     with open(filepath, mode="r", encoding="utf-8") as input_file:
-        text = input_file.read().split('*')
-
-        # Split the matrix_text[0] into lines
-        matrix_lines = text[0].split('\n')
+        data = json.load(input_file)
         
-        # Remove any empty lines
-        matrix_lines = [line for line in matrix_lines if line.strip()]
-
-        matrix = [[int(num) for num in line.split(',')] for line in matrix_lines]
+        matrix = np.array(data["matrix"])
+        vectors = np.array(data["vectors"])
         
-        vector_lines = text[1].split('\n')
-        vector_lines = [line for line in vector_lines if line.strip()]
-        vectors = [[int(num) for num in line.split(',')] for line in vector_lines]
-        
-        print(matrix)
-        print(vectors)
+    print(matrix)
+    print(vectors)
     
-# Calculate determinant and check if it matches the specified value
+
+# Function to create a new window
+def open_new_window(main_window):
+    def close_app():
+        main_window.destroy()  # Destroy the root window to close the whole app
+
+    main_window.withdraw()
+    new_window = ctk.CTkToplevel(fg_color="#ADD8E6")  # Create a new top-level window
+    new_window.title("New window")   # Set the title of the new window
+    frm_calculate = ctk.CTkFrame(master=new_window, fg_color="#ADD8E6")
+    btn_calculate = ctk.CTkButton(master=frm_calculate, text="Calculate", command=calculate)
+    btn_calculate.grid(row=0, column=0, padx=5, pady=5)
+    frm_calculate.pack()
+    btn_back = ctk.CTkButton(new_window, text="Back to Main Window", command=lambda: show_main_window(main_window, new_window))
+    btn_back.pack()
+
+
+    # Bind the closing event to the function that closes the whole app
+    new_window.protocol("WM_DELETE_WINDOW", close_app)
+
+
+def show_main_window(main_window, new_window=None):
+    if new_window:
+        new_window.destroy()  # Close the new window
+    main_window.deiconify()  # Show the main window
+
+
+# Calculate determinant
 def calculate():
-    global matrix_np
     global matrix
+    print(np.linalg.det(matrix))
 
-    matrix_np = np.array(matrix)
-    print(np.linalg.det(matrix_np))
-    if np.linalg.det(matrix_np) == int(ent_number_of_vectors.get()):
-        print("Radix")
-    else:
-        print("Not radix")
+def from_command_line(filepath):
+    global matrix
+    global vectors
 
+    # Erasing contents
+    matrix.fill(0)
+    vectors.fill(0)
 
+    # Loading the JSON file contents
+    with open(filepath, mode="r", encoding="utf-8") as input_file:
+        data = json.load(input_file)
+        
+        matrix = np.array(data["matrix"])
+        vectors = np.array(data["vectors"])
 
 if __name__ == "__main__":
+
+    # Get the command-line arguments
+    arguments = sys.argv
+
     app = ctk.CTk(fg_color="#ADD8E6")
     app.title("Szakdolgozat")
+
+    # The first argument (arguments[0]) is the script filename, so skip it
+    # The second argument (arguments[1]) is the first command-line argument
+    if len(arguments) > 1:
+        filepath = arguments[1]
+        from_command_line(filepath)
+        open_new_window(app)
+
     frm_form = ctk.CTkFrame(master=app, fg_color="#ADD8E6")
 
-    lbl_rows = ctk.CTkLabel(master=frm_form, text="rows:")
-    ent_rows = ctk.CTkEntry(master=frm_form, width=50)
-
-    lbl_columns = ctk.CTkLabel(master=frm_form, text="columns:")
-    ent_columns = ctk.CTkEntry(master=frm_form, width=50)
+    lbl_dimension = ctk.CTkLabel(master=frm_form, text="The system's dimension:")
+    ent_dimension = ctk.CTkEntry(master=frm_form, width=50)
 
     btn_generate = ctk.CTkButton(master=frm_form, text="Generate", command=lambda: generate_matrix(frm_matrix))
 
-    for i in range(4):
+    for i in range(3):
         app.columnconfigure(i, weight=1)
 
     # Use the grid geometry manager to place the Label and Entry widgets
     frm_form.pack()
-    lbl_rows.grid(row=0, column=0, padx=5, pady=5)
-    ent_rows.grid(row=0, column=1, padx=5, pady=5)
-    lbl_columns.grid(row=0, column=2, padx=5, pady=5)
-    ent_columns.grid(row=0, column=3, padx=5, pady=5)
-    btn_generate.grid(row=0, column=4, padx=5, pady=5)
+    lbl_dimension.grid(row=0, column=0, padx=5, pady=5)
+    ent_dimension.grid(row=0, column=1, padx=5, pady=5)
+    btn_generate.grid(row=0, column=2, padx=5, pady=5)
 
     lbl_spacemaker = ctk.CTkFrame(master=app, height=20, fg_color="#ADD8E6")
 
@@ -219,16 +227,14 @@ if __name__ == "__main__":
     ent_number_of_vectors.grid(row=0, column=1, padx=5, pady=5)
 
     frm_vectors = ctk.CTkFrame(master=app, fg_color="#ADD8E6", height=20)
-    btn_generate_vector_lengths = ctk.CTkButton(master=frm_number_of_vectors, text="Generate", command=lambda: generate_vector_lengths(frm_vectors))
+    btn_generate_vector_lengths = ctk.CTkButton(master=frm_number_of_vectors, text="Generate", command=lambda: generate_vectors(frm_vectors))
     btn_generate_vector_lengths.grid(row=0, column=2, padx=5, pady=5)
     frm_number_of_vectors.pack()
     frm_vectors.pack()
 
     frm_generate_vectors = ctk.CTkFrame(master=app, fg_color="#ADD8E6", height=20)
-    btn_generate_vectors = ctk.CTkButton(master=frm_generate_vectors, text="Create vectors", command=lambda: generate_vectors(frm_vectors))
-    btn_generate_vectors.grid(row=0, column=0, padx=5, pady=5)
     btn_save_vectors = ctk.CTkButton(master=frm_generate_vectors, text="Save vectors", command=lambda: save_vectors(frm_vectors))
-    btn_save_vectors.grid(row=0, column=1, padx=5, pady=5)
+    btn_save_vectors.grid(row=0, column=0, padx=5, pady=5)
     frm_generate_vectors.pack()
 
     lbl_spacemaker = ctk.CTkFrame(master=app, height=20, fg_color="#ADD8E6")
@@ -242,9 +248,17 @@ if __name__ == "__main__":
     lbl_spacemaker = ctk.CTkFrame(master=app, height=20, fg_color="#ADD8E6")
     lbl_spacemaker.pack()
 
+    '''
     frm_calculate = ctk.CTkFrame(master=app, fg_color="#ADD8E6")
     btn_calculate = ctk.CTkButton(master=frm_calculate, text="Calculate", command=calculate)
     btn_calculate.grid(row=0, column=0, padx=5, pady=5)
     frm_calculate.pack()
+    '''
+
+    # Create a button to open the new window
+    frm_open_new_window = ctk.CTkFrame(master=app, fg_color="#ADD8E6")
+    btn_open_new_window = ctk.CTkButton(frm_open_new_window, text="Open New Window", command=lambda: open_new_window(app))
+    btn_open_new_window.grid(row=0, column=0, padx=5, pady=5)
+    frm_open_new_window.pack()
 
     app.mainloop()
