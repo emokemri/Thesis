@@ -1,3 +1,6 @@
+09.06.
+base, digits vectors matrix helyett
+
 jegyek=vektorok
 
 mátrix dimenziójának megadása
