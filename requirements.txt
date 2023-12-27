@@ -1,0 +1,6 @@
+tk
+customtkinter
+numpy
+matplotlib
+typing
+smithnormalform
